@@ -1,0 +1,45 @@
+version: "3.8"
+
+services:
+  api-musique:
+    build: ./api-musique
+    container_name: api-musique
+    # Ports supprimés pour la sécurité - accessible uniquement via l'API Gateway
+    environment:
+      - PORT=2500
+      - NODE_ENV=production
+    restart: unless-stopped
+    networks:
+      - microservices-network
+
+  api-jeux:
+    build: ./api-jeux
+    container_name: api-jeux
+    # Ports supprimés pour la sécurité - accessible uniquement via l'API Gateway
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+    restart: unless-stopped
+    networks:
+      - microservices-network
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - NODE_ENV=production
+      - MUSIQUE_SERVICE_URL=http://api-musique:2500
+      - JEUX_SERVICE_URL=http://api-jeux:3000
+    restart: unless-stopped
+    depends_on:
+      - api-musique
+      - api-jeux
+    networks:
+      - microservices-network
+
+networks:
+  microservices-network:
+    driver: bridge
